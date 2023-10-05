@@ -18,6 +18,8 @@
  * */
 #define SIZE 4
 #define SPACES 7
+#define FG "[38;5;255;"
+#define BG "48;5;"
 
 uint8_t pick_number(){
     int random_number = rand()%10;
@@ -32,7 +34,9 @@ uint8_t get_digit_count(uint16_t num){
     return count;
 }
 
-void print_block(uint16_t num, uint8_t spaces){
+
+void print_number(uint16_t num, uint8_t spaces){
+
     for(uint8_t i = 0; i < spaces / 2; i++)
         printf(" ");
     printf("%u", num);
@@ -40,23 +44,34 @@ void print_block(uint16_t num, uint8_t spaces){
     for(uint8_t i = 0; i < spaces / 2; i++)
         printf(" ");
 }
+void print_block(uint16_t num, uint8_t *full, uint16_t *max){
+    if(num > 0) {
+        if((*max) < num) (*max) = num;
+        (*full)++;
+        print_number(num, (SPACES - get_digit_count(num)));
+    }else printf("   ·   ");
 
+}
 
 void draw_board(uint16_t matrix[SIZE][SIZE], uint8_t *full, uint16_t *max){
-    printf("_______________________________\n");
 
     *full = 0;
+    uint8_t bg;
+
+
     for(int i = 0; i < SIZE; i++){
-        for(int j = 0; j < SIZE; j++){
-            printf("|");
-            if((*max) < matrix[i][j]) (*max) = matrix[i][j];
-            if(matrix[i][j] > 0) {
-                (*full)++;
-                print_block(matrix[i][j], (SPACES - get_digit_count(matrix[i][j])));
-            }else printf("   ·   ");
+        for(int k = 0; k < SIZE - 1; k++){
+            for(int j = 0; j < SIZE; j++){
+
+                bg = matrix[i][j] % 255;
+                printf("\033%s%s%um", FG, BG, bg);
+
+                if(k == 1) print_block(matrix[i][j], full, max);
+                else printf("       ");
+            }
+            printf("\033[m\n");
+
         }
-        printf("|\n");
-        printf("-------------------------------\n");
     }
 
 }
@@ -71,11 +86,7 @@ void put_number(uint16_t matrix[SIZE][SIZE]){
     matrix[x][y] = pick_number();
 }
 
-void init(uint16_t matrix[SIZE][SIZE]){
-    int randomx = rand()%SIZE;
-    int randomy = rand()%SIZE;
-    matrix[randomx][randomy] = pick_number();
-}
+
 
 uint8_t slide_count_right(uint16_t matrix[][SIZE], int x, int y){
     int count = 0;
@@ -233,6 +244,44 @@ bool check_end(uint16_t matrix[][SIZE]){
     }
     return 0;
 }
+uint8_t input_cntrl(uint16_t matrix[][SIZE]){
+    char input = getchar();
+    uint8_t succes = false;
+
+
+    switch(input){
+        case 'd':
+        case 'D':
+            succes = slide_right(matrix);
+            break;
+        case 'a':
+        case 'A':
+            succes = slide_left(matrix);
+            break;
+        case 's':
+        case 'S':
+            succes = slide_down(matrix);
+            break;
+        case 'w':
+        case 'W':
+            succes = slide_up(matrix);
+            break;
+        case 'Q':
+        case 'q':
+            succes = 2;
+            break;
+    }
+    return succes;
+}
+void init(uint16_t matrix[SIZE][SIZE]){
+    memset(matrix, 0, SIZE * SIZE * sizeof(uint16_t));
+    
+    clear();
+    terminal_config();
+    int randomx = rand()%SIZE;
+    int randomy = rand()%SIZE;
+    matrix[randomx][randomy] = pick_number();
+}
 /*
  * main
  *
@@ -240,51 +289,44 @@ bool check_end(uint16_t matrix[][SIZE]){
 int main(int argc, char**argv){
     (void)argc; (void)argv;
 
-    uint8_t full = 0, end = 1;
-    uint16_t max = 0, matrix[SIZE][SIZE];
-    char input;
-    bool succes = 0;
+    uint8_t status = 1;
+    uint16_t matrix[SIZE][SIZE];
+    uint8_t succes = 0;
+    uint8_t full = 0;
+    uint16_t max = 0;
 
-    memset(matrix, 0, SIZE * SIZE * sizeof(uint16_t));
-
-    clear();
     srand(time(0));
     init(matrix);
-    terminal_config();
     draw_board(matrix, &full, &max); 
+    printf("w,a,s,d to move, q to quit!\n");
 
-    while(end){
-        input = getchar();
-        switch(input){
-            case 'd':
-            case 'D':
-                succes = slide_right(matrix);
-                break;
-            case 'a':
-            case 'A':
-                succes = slide_left(matrix);
-                break;
-            case 's':
-            case 'S':
-                succes = slide_down(matrix);
-                break;
-            case 'w':
-            case 'W':
-                succes = slide_up(matrix);
-                break;
-            case 'Q':
-            case 'q':
-                end = 0;
-        }
-        
-        if(succes > 0){
+    while(status){
+        succes = input_cntrl(matrix);
+        if(succes == 1){
+            clear();
             put_number(matrix);
+            draw_board(matrix, &full, &max);
+            printf("w,a,s,d to move, q to quit!\n");
+            succes = 0;
+        }else if(succes == 2){
             clear();
             draw_board(matrix, &full, &max);
+            printf("Are you sure? [y/N]\n");
+            char inp = getchar();
+            if(inp == 'Y' || inp == 'y') {
+                clear();
+                draw_board(matrix, &full, &max);
+                status = 0;
+            }else {
+                clear();
+                draw_board(matrix, &full, &max);
+                printf("w,a,s,d to move, q to quit!\n");
+            }
             succes = 0;
+
         }
-        if(full >= 16) end = check_end(matrix);
-        if(max == 2048) end = 0;
+        if(full >= 16) status = check_end(matrix);
+        if(max == 2048) status = 0;
     }
 
     printf("score [%u]\n", max);
