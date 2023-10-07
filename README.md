@@ -1,6 +1,8 @@
 # 2048
 Ah yes another console version of the game 2048;
 
+I stole(or should I say "I was inspired by"?) the design from [2048.c](https://github.com/mevdschee/2048.c)
+
 ### Requirements:
   * C compiler
   * make(optional)
