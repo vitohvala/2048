@@ -1,7 +1,9 @@
 /*
- * 
- *
+ * Author:          Redzovic Iljaz
+ * Description:     Console version of the game 2048
  * */
+
+/*includes*/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -12,19 +14,24 @@
 
 #include "term_config.h"
 
-/*
- * 
- * 
- * */
+/*defines*/
 #define SIZE 4
 #define SPACES 7
 #define FG "[38;5;255;"
 #define BG "48;5;"
 
-uint8_t pick_number(){
+/*
+ * returns 4 if random generated number is greater than 8
+ * otherwise returns 2
+ * */
+uint8_t pick_number(void){
     int random_number = rand()%10;
-    return (random_number > 7) ? 4 : 2;
+    return (random_number > 8) ? 4 : 2;
 }
+
+/*
+ * returns the number of digits in the parameter 'num'
+ */
 uint8_t get_digit_count(uint16_t num){
     uint8_t count = 1;
     while(num > 9){
@@ -34,7 +41,12 @@ uint8_t get_digit_count(uint16_t num){
     return count;
 }
 
-
+/*
+ * Prints an unsigned 16-bit integer
+ * Parameters:
+ *          num - the number to be printed
+ *          spaces - total number of spaces around the printed number
+ */
 void print_number(uint16_t num, uint8_t spaces){
 
     for(uint8_t i = 0; i < spaces / 2; i++)
@@ -44,6 +56,16 @@ void print_number(uint16_t num, uint8_t spaces){
     for(uint8_t i = 0; i < spaces / 2; i++)
         printf(" ");
 }
+
+/*
+ * Function print_block() prints a block containing an unsigned 16-bit integer 'num' with formatting.
+ * It updates the 'full' counter and keeps track of the maximum value in 'max'.
+ *
+ * Parameters:
+ *     num - The number to be printed inside the block.
+ *     full - A pointer to a counter that keeps track of the total number of numbers bigger than 0.
+ *     max - A pointer to the maximum value encountered among the numbers printed.
+ */
 void print_block(uint16_t num, uint8_t *full, uint16_t *max){
     if(num > 0) {
         if((*max) < num) (*max) = num;
@@ -52,6 +74,18 @@ void print_block(uint16_t num, uint8_t *full, uint16_t *max){
     }else printf("   ·   ");
 
 }
+
+/*
+ * Function draw_board() prints a game board represented by a 2D matrix with specified formatting.
+ * It updates the 'full' counter and keeps track of the maximum value encountered in the matrix.
+ *
+ * Parameters:
+ *     matrix - The 2D matrix representing the game board.
+ *     full - A pointer to a counter that keeps track of the total number of nums bigger than 0.
+ *     max - A pointer to the maximum value encountered in the matrix.
+ *
+ * The function uses ANSI escape codes for custom text formatting, including text and background colors.
+ */
 
 void draw_board(uint16_t matrix[SIZE][SIZE], uint8_t *full, uint16_t *max){
 
@@ -76,6 +110,15 @@ void draw_board(uint16_t matrix[SIZE][SIZE], uint8_t *full, uint16_t *max){
 
 }
 
+/*
+ * Function put_number() randomly places a new number (either 2 or 4) in the specified game matrix.
+ *
+ * Parameters:
+ *     matrix - The 2D matrix representing the game board where the number is placed.
+ *
+ * The function generates random coordinates (x, y) within the matrix and ensures that the selected cell is empty (contains 0)
+ * before placing a new number using the 'pick_number' function.
+ */
 void put_number(uint16_t matrix[SIZE][SIZE]){
     int x, y;
     do {
@@ -85,7 +128,6 @@ void put_number(uint16_t matrix[SIZE][SIZE]){
 
     matrix[x][y] = pick_number();
 }
-
 
 
 uint8_t slide_count_right(uint16_t matrix[][SIZE], int x, int y){
