@@ -40,7 +40,7 @@ void terminal_config(void){
     new_termios.c_iflag &= ~(IXON);//disable ctrl-q, ctrl-s
     //ISIG disable ctrl-c ctrl-z, disable SIGINT, SIGSTP signals 
     //ECHO disables echo in this case
-    //and ICANON sets non-canonical mode
+    //and ICANON sets canonical mode
     new_termios.c_lflag &= ~(ICANON | ECHO| ISIG);
     new_termios.c_cc[VMIN] = 1; //minimum number of characters to wait
     new_termios.c_cc[VTIME] =  1; //minimum time to wait 1=0.1
