@@ -1,7 +1,7 @@
 # 2048
-Ah yes another console version of the game 2048;
+Another 2048 clone
 
-I stole(or should I say "I was inspired by"?) the design from [2048.c](https://github.com/mevdschee/2048.c)
+inspired by [2048.c](https://github.com/mevdschee/2048.c)
 
 ### Requirements:
   * C compiler
